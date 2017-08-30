@@ -1,0 +1,12 @@
+name: OddsCheckR
+title: OddsCheckR
+username:
+account: jeremybowyer
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 208667
+bundleId: 959609
+url: https://jeremybowyer.shinyapps.io/OddsCheckR/
+when: 1504050290.13156
+asMultiple: FALSE
+asStatic: FALSE

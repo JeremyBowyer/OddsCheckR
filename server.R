@@ -28,7 +28,11 @@ shinyServer(function(input, output) {
 
         # Read in scenario data
         scenariourl <- paste0(url,"/bet-history/",gsub(" ","-",scenario),"/all-history")
-        scenariodoc <- read_html(curl(scenariourl, handle = curl::new_handle("useragent" = "Mozilla/5.0")))
+        scenariotext <- readLines(scenariourl)
+        scenariotext <- paste(scenariotext, collapse = " ")
+        scenariosHtml[scenario] <- scenariotext
+        
+        scenariodoc <- read_html(scenariotext)
         
         # Scenario dates
         datedoc <- html_nodes(scenariodoc, xpath = '//*[@id="all-history"]/table/tbody/tr/td[1]')
@@ -43,8 +47,8 @@ shinyServer(function(input, output) {
       
       # Extract start and end date for market
       scenariosDates <- as.Date(scenariosDates)
-      startDate <- min(scenariosDates)
-      endDate <- max(scenariosDates)
+      startDate <- min(scenariosDates, na.rm = TRUE)
+      endDate <- max(scenariosDates, na.rm = TRUE)
       # generate date list
       maindates <- seq.Date(from = startDate, to = endDate, by = "day")
       
@@ -56,8 +60,8 @@ shinyServer(function(input, output) {
         incProgress(1/n, message = paste0("Calculating odds for ", scenario, "..."))
 
         # Read in scenario data
-        scenariourl <- paste0(url,"/bet-history/",gsub(" ","-",scenario),"/all-history")
-        scenariodoc <- read_html(curl(scenariourl, handle = curl::new_handle("useragent" = "Mozilla/5.0")))
+        scenariotext <- scenariosHtml[[scenario]]
+        scenariodoc <- read_html(scenariotext)
         
         # Scenario dates
         datedoc <- html_nodes(scenariodoc, xpath = '//*[@id="all-history"]/table/tbody/tr/td[1]')
