@@ -1,9 +1,10 @@
 
 library(rvest)
+library(curl)
+library(XML)
 library(zoo)
 library(reshape2)
 library(shiny)
-library(curl)
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
@@ -79,33 +80,37 @@ shinyServer(function(input, output) {
           sites[length(sites)+1] <- site
         }
         
-        # Create scenario data frame
-        scenariodf <- setNames(as.data.frame(matrix(nrow=length(scenariodates), ncol=length(sites))), sites)
-        rownames(scenariodf) <- scenariodates
-        
-        # Add data to DF
-        for (r in 1:length(scenariodates)) {
-          for (c in 1:length(sites)) {
+        convertOdds = function(node, encoding) {
+          
+          if (!is.null(xmlChildren(node)$div)) { 
             
-            path <- paste0('//*[@id="all-history"]/table/tbody/tr[',r,']/td[',c+1,']/div[1]')
-            rawodd <- html_nodes(scenariodoc, xpath = path)
-            rawodd <- html_text(rawodd)
+            rawodd <- xmlValue(xmlChildren(node)$div)
             
-            scenariodf[r,c] <- 
-              if(length(rawodd) == 0) {
-                NA 
-              } else if (length(grep("/",rawodd)) != 0) {
-                # split character fractions by "/" then divide numerator by denominator
-                odd <- as.numeric(unlist(strsplit(rawodd, split = "/"))[1]) / as.numeric(unlist(strsplit(rawodd, split = "/"))[2])
-                odd <- 1/(odd+1)
-              } else if (rawodd == "SUSP") {
-                "SUSP"
-              } else {
-                odd <- as.numeric(rawodd)
-                odd <- 1/(odd+1)
-              }
+            if(length(rawodd) == 0) {
+              return(NA) 
+            } else if (length(grep("/",rawodd)) != 0) {
+              # split character fractions by "/" then divide numerator by denominator
+              odd <- as.numeric(unlist(strsplit(rawodd, split = "/"))[1]) / as.numeric(unlist(strsplit(rawodd, split = "/"))[2])
+              odd <- 1/(odd+1)
+            } else if (rawodd == "SUSP") {
+              "SUSP"
+            } else {
+              odd <- as.numeric(rawodd)
+              odd <- 1/(odd+1)
+            }
+            
+            return(odd)
+            
+          } else {
+            return(NA)
           }
+          
         }
+        
+        scenariodf <- readHTMLTable(scenariotext, which = 2, elFun = convertOdds, stringsAsFactors=FALSE)
+        scenariodf <- scenariodf[1:length(scenariodates), -1]
+        names(scenariodf) <- sites
+        rownames(scenariodf) <- scenariodates
         
         ## create full daily scenario df
         dailydf <- setNames(as.data.frame(matrix(nrow=length(maindates), ncol=length(sites)), row.names=as.character(maindates)), sites)
@@ -120,7 +125,7 @@ shinyServer(function(input, output) {
         ## convert daily candidate df to numeric
         suppressWarnings(class(dailydf) <- "numeric")
         
-        ## calculate row means and insert into UKConservative df
+        ## calculate row means and insert into main df
         maindf[,scenario] <- replace(rowMeans(dailydf, na.rm = TRUE),is.nan(rowMeans(dailydf, na.rm = TRUE)),NA)
       }
       

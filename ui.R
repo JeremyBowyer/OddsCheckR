@@ -1,7 +1,4 @@
 
-library(rvest)
-library(zoo)
-library(reshape2)
 library(shiny)
 
 # Define UI for application that draws a histogram
