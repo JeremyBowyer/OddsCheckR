@@ -21,6 +21,7 @@ shinyServer(function(input, output) {
       # progress bar information
       n <- length(scenarios) * 2
 
+      # Loop through scenarios, save HTML text and build list of all dates
       scenariosHtml <- list()
       scenariosDates <- character()
       for(scenario in scenarios){
@@ -44,7 +45,7 @@ shinyServer(function(input, output) {
         scenariosDates <- c(scenariosDates, scenarioDates)
       }
   
-      
+      # construct main dataframe that will hold all probabilities
       # Extract start and end date for market
       scenariosDates <- as.Date(scenariosDates)
       startDate <- min(scenariosDates, na.rm = TRUE)
