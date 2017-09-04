@@ -5,9 +5,26 @@ library(XML)
 library(zoo)
 library(reshape2)
 library(shiny)
+library(ggvis)
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
+  
+    ###################
+    # Reactive Values #
+    ###################
+    vals <- reactiveValues(originalDF = data.frame(),
+                           oddsDF = data.frame())  
+
+    ###########################
+    # Option Panel Conditions #
+    ###########################
+  
+    output$urlProvided <- reactive({
+      return(nrow(vals$originalDF) > 0)
+    })
+    outputOptions(output, 'urlProvided', suspendWhenHidden=FALSE)
+  
  
     observeEvent(input$run, {
     
@@ -134,12 +151,21 @@ shinyServer(function(input, output) {
       maindf$Date <- row.names(maindf)
       maindf <- maindf[, c("Date", cols)]
       
+      vals$originalDF <- maindf
+      
     })
     
+    observeEvent(input$oddsDates, {
+      df <- vals$originalDF
+      df$Date <- as.Date(df$Date)
+      df <- df[df$Date <= input$oddsDates[2] & df$Date >= input$oddsDates[1], ]
+      df$Date <- as.character(df$Date)
+      vals$oddsDF <- df
+    })
       
     output$dataPreview <- renderTable({
       
-      return(maindf)
+      return(vals$oddsDF)
       
     })
     
