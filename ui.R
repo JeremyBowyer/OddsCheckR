@@ -1,6 +1,7 @@
 
 library(shiny)
-library(ggvis)
+library(XLConnect)
+library(ggplot2)
 
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
@@ -12,6 +13,7 @@ shinyUI(fluidPage(
     dateRangeInput("oddsDates", "Date range:",
                    start = as.Date("2017-01-01","%Y-%m-%d"),
                    end = as.Date("2017-08-01","%Y-%m-%d")),
-    tableOutput("dataPreview")
+    plotOutput("oddsLine"),
+    downloadButton('downloadData', 'Download Odds Data')
   )
 ))

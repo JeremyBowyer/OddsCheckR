@@ -5,7 +5,8 @@ library(XML)
 library(zoo)
 library(reshape2)
 library(shiny)
-library(ggvis)
+library(XLConnect)
+library(ggplot2)
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
@@ -151,23 +152,40 @@ shinyServer(function(input, output) {
       maindf$Date <- row.names(maindf)
       maindf <- maindf[, c("Date", cols)]
       
+      longdf <- melt(maindf, id.vars = "Date", value.name = "Probability", variable.name = "Scenario")
+      
       vals$originalDF <- maindf
+      vals$longDF <- longdf
       
     })
     
     observeEvent(input$oddsDates, {
-      df <- vals$originalDF
+      df <- vals$longDF
       df$Date <- as.Date(df$Date)
       df <- df[df$Date <= input$oddsDates[2] & df$Date >= input$oddsDates[1], ]
       df$Date <- as.character(df$Date)
+      
       vals$oddsDF <- df
-    })
-      
-    output$dataPreview <- renderTable({
-      
-      return(vals$oddsDF)
       
     })
+    
+    output$oddsLine <- renderPlot({
+      ggplot(vals$oddsDF, aes(x = Date, y = Probability, group = Scenario, color = Scenario)) +
+        geom_line()
+    })
+    
+    output$downloadData <- downloadHandler(
+      filename = function(){"odds_data.xlsx"},
+      content = function(file) {
+        fname <- paste(file,"xlsx",sep=".")
+        wb <- loadWorkbook(fname,create = TRUE)
+        createSheet(wb,"data")
+        writeWorksheet(wb,data = vals$originalDF, sheet = "data")
+        saveWorkbook(wb)
+        file.rename(fname,file)
+      },
+      contentType="application/xlsx" 
+    )
     
   })
   
