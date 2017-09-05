@@ -146,8 +146,13 @@ shinyServer(function(input, output, session) {
         ## calculate row means and insert into main df
         maindf[,scenario] <- replace(rowMeans(dailydf, na.rm = TRUE),is.nan(rowMeans(dailydf, na.rm = TRUE)),NA)
       }
-      
-      maindf[] <- t(apply(maindf, 1, function(x) x / sum(x, na.rm = TRUE)))
+
+      if (length(scenarios) > 1) {
+        
+        maindf[] <- t(apply(maindf, 1, function(x) x / sum(x, na.rm = TRUE)))
+        
+      }
+
       cols <- names(maindf)
       maindf$Date <- row.names(maindf)
       maindf <- maindf[, c("Date", cols)]
