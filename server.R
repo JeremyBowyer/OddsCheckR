@@ -9,7 +9,7 @@ library(XLConnect)
 library(ggplot2)
 
 # Define server logic required to draw a histogram
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
   
     ###################
     # Reactive Values #
@@ -44,7 +44,7 @@ shinyServer(function(input, output) {
       scenariosHtml <- list()
       scenariosDates <- character()
       for(scenario in scenarios){
-        incProgress(1/n, message = "Gathering dates...")
+        incProgress(1/n, message = "Gathering data...")
 
         # Read in scenario data
         scenariourl <- paste0(url,"/bet-history/",gsub(" ","-",scenario),"/all-history")
@@ -111,7 +111,7 @@ shinyServer(function(input, output) {
               odd <- as.numeric(unlist(strsplit(rawodd, split = "/"))[1]) / as.numeric(unlist(strsplit(rawodd, split = "/"))[2])
               odd <- 1/(odd+1)
             } else if (rawodd == "SUSP") {
-              "SUSP"
+              odd <- "SUSP"
             } else {
               odd <- as.numeric(rawodd)
               odd <- 1/(odd+1)
@@ -154,6 +154,14 @@ shinyServer(function(input, output) {
       
       longdf <- melt(maindf, id.vars = "Date", value.name = "Probability", variable.name = "Scenario")
       
+      updateDateRangeInput(session, "oddsDates",
+                           label = "Date range:",
+                           start = startDate,
+                           end = endDate,
+                           min = startDate,
+                           max = endDate
+      )
+      
       vals$originalDF <- maindf
       vals$longDF <- longdf
       
@@ -170,8 +178,14 @@ shinyServer(function(input, output) {
     })
     
     output$oddsLine <- renderPlot({
-      ggplot(vals$oddsDF, aes(x = Date, y = Probability, group = Scenario, color = Scenario)) +
-        geom_line()
+      
+      df <- vals$oddsDF
+      df$Date <- as.Date(df$Date)
+      
+      ggplot(df, aes(x = Date, y = Probability, group = Scenario, color = Scenario)) +
+        geom_line(size = 2) +
+        theme(legend.position="bottom")
+      
     })
     
     output$downloadData <- downloadHandler(

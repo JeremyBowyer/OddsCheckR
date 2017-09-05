@@ -12,7 +12,7 @@ shinyUI(fluidPage(
     condition = "output.urlProvided",
     dateRangeInput("oddsDates", "Date range:",
                    start = as.Date("2017-01-01","%Y-%m-%d"),
-                   end = as.Date("2017-08-01","%Y-%m-%d")),
+                   end = as.Date("2017-01-02","%Y-%m-%d")),
     plotOutput("oddsLine"),
     downloadButton('downloadData', 'Download Odds Data')
   )

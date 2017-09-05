@@ -5,8 +5,9 @@ account: jeremybowyer
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 208667
-bundleId: 961107
+bundleId: 967571
 url: https://jeremybowyer.shinyapps.io/OddsCheckR/
-when: 1504126608.30092
+when: 1504581851.17754
 asMultiple: FALSE
 asStatic: FALSE
+ignoredFiles: single_http_requests
