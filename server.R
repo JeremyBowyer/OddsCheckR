@@ -147,7 +147,7 @@ shinyServer(function(input, output, session) {
         maindf[,scenario] <- replace(rowMeans(dailydf, na.rm = TRUE),is.nan(rowMeans(dailydf, na.rm = TRUE)),NA)
       }
 
-      if (length(scenarios) > 1) {
+      if (length(scenarios) > 1 && input$scale) {
         
         maindf[] <- t(apply(maindf, 1, function(x) x / sum(x, na.rm = TRUE)))
         
