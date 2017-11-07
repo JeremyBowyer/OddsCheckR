@@ -176,7 +176,7 @@ shinyServer(function(input, output, session) {
     })
     
     observeEvent(input$oddsDates, {
-      df <- vals$longDF
+      df <- vals$originalDF
       df$Date <- as.Date(df$Date)
       df <- df[df$Date <= input$oddsDates[2] & df$Date >= input$oddsDates[1], ]
       df$Date <- as.character(df$Date)
@@ -187,7 +187,7 @@ shinyServer(function(input, output, session) {
     
     output$oddsLine <- renderPlotly({
       
-      df <- vals$originalDF
+      df <- vals$oddsDF
       df$Date <- as.Date(df$Date)
       
       scenarioList <- names(df)[-1]
