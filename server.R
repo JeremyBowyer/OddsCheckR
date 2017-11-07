@@ -6,7 +6,7 @@ library(zoo)
 library(reshape2)
 library(shiny)
 library(XLConnect)
-library(ggplot2)
+library(plotly)
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
@@ -167,7 +167,10 @@ shinyServer(function(input, output, session) {
                            max = endDate
       )
       
+      names(maindf) <- gsub(" ", "", names(maindf))
+      
       vals$originalDF <- maindf
+      vals$oddsDF <- maindf
       vals$longDF <- longdf
       
     })
@@ -182,14 +185,22 @@ shinyServer(function(input, output, session) {
       
     })
     
-    output$oddsLine <- renderPlot({
+    output$oddsLine <- renderPlotly({
       
-      df <- vals$oddsDF
+      df <- vals$originalDF
       df$Date <- as.Date(df$Date)
       
-      ggplot(df, aes(x = Date, y = Probability, group = Scenario, color = Scenario)) +
-        geom_line(size = 2) +
-        theme(legend.position="bottom")
+      scenarioList <- names(df)[-1]
+      
+      yform <- as.formula(paste0("~",scenarioList[1]))
+      p <- plot_ly(data = df, x = ~Date, y = yform, name = scenarioList[1], type = "scatter", mode = "lines")
+
+      for (scenario in scenarioList[-1]) {
+        yform <- as.formula(paste0("~", scenario))
+        p <- add_trace(p, data = df, x = ~Date, y = yform, name = scenario)
+      }
+      
+      p
       
     })
     
@@ -199,7 +210,7 @@ shinyServer(function(input, output, session) {
         fname <- paste(file,"xlsx",sep=".")
         wb <- loadWorkbook(fname,create = TRUE)
         createSheet(wb,"data")
-        writeWorksheet(wb,data = vals$originalDF, sheet = "data")
+        writeWorksheet(wb, data = vals$originalDF, sheet = "data")
         saveWorkbook(wb)
         file.rename(fname,file)
       },
